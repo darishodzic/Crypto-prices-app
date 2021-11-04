@@ -1,12 +1,53 @@
-import React from "react";
-const Cryptocurrencies = () => {
+import React, { useState, useEffect } from "react";
+import { millify } from "millify";
+import { Link } from "react-router-dom";
+import { Card, Row, Col, Input } from "antd";
+import { useGetCryptosQuery } from "../services/cryptoApi";
+
+const Cryptocurrencies = ({ simplified }) => {
+  const count = simplified ? 10 : 100;
+  const { data: cryptosList, isFetching } = useGetCryptosQuery(count);
+
+  const [cryptos, setCryptos] = useState(cryptosList?.data?.coins);
+  useEffect(() => {
+    setCryptos(cryptosList?.data?.coins);
+  }, [cryptosList]);
+
+  if (isFetching || !cryptos) {
+    return <p>Loading...</p>;
+  }
+
   return (
-    <div>
-      Lorem ipsum dolor sit amet consectetur adipisicing elit. Modi, facilis
-      veniam. Repellendus quasi soluta odio quod corrupti aliquid recusandae
-      deserunt eum molestiae, minus quam autem, ut reiciendis dolorum laborum?
-      Dolores.
-    </div>
+    <>
+      <Row gutter={[32, 32]} className="crypto-card-container">
+        {cryptos?.map((currency) => (
+          <Col xs={24} sm={15} lg={6} className="crypto-card" key={currency.id}>
+            <Link to={`/crypto/${currency.id}`}>
+              <Card
+                title={`${currency.rank}. ${currency.name}`}
+                extra={
+                  <img
+                    className="crypto-image"
+                    src={currency.iconUrl}
+                    alt=" "
+                  />
+                }
+                hoverable
+              >
+                <p>
+                  Price:
+                  {currency.price > 10
+                    ? Math.round(currency.price)
+                    : Math.round(currency.price * 100000) / 100000}
+                </p>
+                <p>Market Cap: {millify(currency.marketCap)}</p>
+                <p>Daily Change: {millify(currency.change)}%</p>
+              </Card>
+            </Link>
+          </Col>
+        ))}
+      </Row>
+    </>
   );
 };
 
